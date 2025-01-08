@@ -6,25 +6,46 @@ type User = {
   lastname: string;
   email: string;
 };
+
 function UserForm() {
   const [users, setUsers] = useState<User[]>([
     { id: 1, name: "hedi", lastname: "jla", email: "hedi@gmmail.com" },
   ]);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const newUser: User = {
-      id: users.length + 1,
+      id: currentUserId !== null ? currentUserId : users.length + 1,
       name: formData.get("name") as string,
       lastname: formData.get("lastname") as string,
       email: formData.get("email") as string,
     };
-    setUsers([...users, newUser]);
+
+    if (currentUserId !== null) {
+      setUsers(
+        users.map((user) => (user.id === currentUserId ? newUser : user))
+      );
+      setCurrentUserId(null);
+    } else {
+      setUsers([...users, newUser]);
+    }
   };
 
   const handleDelete = (id: number) => {
     setUsers(users.filter((user) => user.id !== id));
+  };
+
+  const handleEdit = (user: User) => {
+    setCurrentUserId(user.id);
+    (document.querySelector('input[name="name"]') as HTMLInputElement).value =
+      user.name;
+    (
+      document.querySelector('input[name="lastname"]') as HTMLInputElement
+    ).value = user.lastname;
+    (document.querySelector('input[name="email"]') as HTMLInputElement).value =
+      user.email;
   };
 
   return (
@@ -67,6 +88,13 @@ function UserForm() {
             onClick={() => handleDelete(users[users.length - 1]?.id)}
           >
             Delete
+          </button>
+          <button
+            type="button"
+            className="bg-green-500 rounded-md w-full mt-2 p-1"
+            onClick={() => handleEdit(users[users.length - 1])}
+          >
+            Update
           </button>
         </form>
       </div>
